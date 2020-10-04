@@ -79,8 +79,10 @@ rf = RandomForestRegressor(n_estimators=50,
 # Fit rf to the training set
 rf.fit(X_train, y_train)
 
-# Predict the tips
+# Predict the trip count
 y_pred = rf.predict(X_test)
+#sns.kdeplot(y_pred, shade=True)
+#plt.show()
 
 # Evaluate the test set RMSE
 rmse_test = MSE(y_test, y_pred)**(1/2)
@@ -111,6 +113,11 @@ visualizer.show()
 ax = sns.boxplot(x=y_pred-y_test)
 ax.set(xlabel='Difference b/t actual and prediction')
 plt.show()
+
+# add results to dataframe
+pred_results = pd.DataFrame(y_test).rename(columns={"Trip_count": "y"})
+pred_results = pred_results.merge(X[['Station']], left_index=True, right_index=True)
+pred_results['y_RF'] = y_pred
 
 
 
@@ -158,6 +165,8 @@ plt.title('Features Importances')
 plt.gcf().set_size_inches(5, 15)
 plt.show()
 
+# add results to dataframe
+pred_results['y_xgb'] = preds
 
 
 
@@ -166,4 +175,4 @@ plt.show()
 # KNN
 
 
-# dummy code
+pred_results.to_csv("Predictions/preds.csv", index=False)
