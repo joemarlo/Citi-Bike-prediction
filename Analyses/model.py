@@ -68,11 +68,11 @@ y = station_trips['Trip_count']
 #selected_features = ['Station', 'is_workday', 'Precipitation', 'Temp_max', 'Temp_min']
 
 # Joe's selected features
-selected_features = ['Dist_to_subway', 'Station', 'Month', 'is_workday', 'Precipitation', 'Temp_max', 'Temp_min', 'Wind_speed_max_5sec']
+selected_features = ['Dist_to_subway', 'Station', "Year", 'Month', 'is_workday', 'Precipitation', 'Temp_max', 'Temp_min', 'Wind_speed_max_5sec']
 X = station_trips[selected_features]
 
-# dummy code Month
-X = pd.get_dummies(X, columns=['Month'])
+# dummy code Year and Month
+X = pd.get_dummies(X, columns=['Year', 'Month'])
 
 # scale the data
 #X.iloc[:, 2:5] = preprocessing.scale(X.iloc[:, 2:5])
@@ -139,8 +139,14 @@ pred_results['y_RF'] = y_pred
 
 ##### xgboost
 # Instantiate the XGBRegressor
-xg_reg = xgb.XGBRegressor(objective='count:poisson', n_estimators=100, seed=44, max_depth=20, n_jobs=-1)
+xg_reg = xgb.XGBRegressor(objective='count:poisson', n_estimators=100, seed=44, max_depth=15, n_jobs=-1)
 
+#RMSE ~ 22 @ max_depth=10
+#RMSE ~ 18 @ max_depth=15
+#RMSE ~ 19 @ max_depth=20
+#RMSE ~ 22 @ max_depth=25
+
+## old
 #RMSE ~ 38 @ max_depth=3
 #RMSE ~ 27 @ max_depth=10
 #RMSE ~ 24 @ max_depth=20
@@ -248,3 +254,36 @@ pred_results['y_mlpr'] = mlpr_preds
 
 # write out dataframe
 pred_results.to_csv("Predictions/preds.csv", index=False)
+
+
+
+#### TEST: dummy code station by first sampling (otherwise memory problems)
+samp = station_trips.sample(n=100000)
+X = samp.drop(["Trip_count", 'Date'], axis=1)
+y = samp['Trip_count']
+
+# Joe's selected features
+selected_features = ['Dist_to_subway', 'Station', "Year", 'Month', 'is_workday', 'Precipitation', 'Temp_max', 'Temp_min', 'Wind_speed_max_5sec']
+X = samp[selected_features]
+
+# dummy code Year, Month, and Station
+X = pd.get_dummies(X, columns=['Year', 'Month', 'Station'])
+
+# scale the data
+X.loc[:, ['Dist_to_subway', 'Precipitation', 'Temp_max', 'Temp_min', 'Wind_speed_max_5sec']] = preprocessing.scale(X.loc[:, ['Dist_to_subway', 'Precipitation', 'Temp_max', 'Temp_min', 'Wind_speed_max_5sec']])
+
+# split the data
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=44)
+
+# Instantiate rf
+rf = RandomForestRegressor(n_estimators=100, random_state=44, n_jobs=-1)
+
+# Fit rf to the training set
+rf.fit(X_train, y_train)
+
+# Predict the trip count
+y_pred = rf.predict(X_test)
+
+# Evaluate the test set RMSE
+MSE(y_test, y_pred)**(1/2)
+# RMSE is ~30
