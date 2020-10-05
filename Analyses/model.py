@@ -12,7 +12,7 @@ from sklearn.preprocessing import OneHotEncoder
 from sklearn.feature_extraction import FeatureHasher
 from sklearn.metrics import mean_squared_error as MSE
 from yellowbrick.regressor import ResidualsPlot
-from boruta import BorutaPy
+
 
 os.chdir('/home/joemarlo/Dropbox/Data/Projects/NYC-data/Analyses/Citi-Bike-prediction/Citi-Bike-prediction')
 
@@ -22,52 +22,7 @@ station_trips = station_trips.astype({'Date': 'datetime64', 'is_holiday': 'int64
 station_trips = station_trips.rename(columns={'dist_to_subway': 'Dist_to_subway'})
 station_trips.isnull().sum()
 
-#### quick EDA
-# pairs pyplot
-# first sample for performance
-#samp = station_trips[['Trip_count', 'Week', 'is_workday', 'Precipitation', 'Snowfall', 'Temp_max', 'Temp_min', "Wind_speed_max_5sec"]].sample(n=100)
-#sns.pairplot(samp)
-#plt.show()
-
-# Compute the correlation matrix
-corr = station_trips.corr()
-
-# Generate a mask for the upper triangle
-mask = np.triu(np.ones_like(corr, dtype=bool))
-
-# Set up the matplotlib figure
-f, ax = plt.subplots(figsize=(11, 9))
-
-# Generate a custom diverging colormap
-cmap = sns.diverging_palette(230, 20, as_cmap=True)
-
-# Draw the heatmap with the mask and correct aspect ratio
-sns.heatmap(corr, mask=mask, cmap=cmap, vmax=.3, center=0,
-            square=True, linewidths=.5, cbar_kws={"shrink": .5})
-plt.show()
-
-
-##### Boruta for feature selection
-# first sample for performance
-#samp = station_trips.sample(n=100000)
-X = station_trips.drop(["Trip_count", 'Date'], axis=1)
-y = station_trips['Trip_count']
-
-# define random forest classifier, with utilising all cores and
-# sampling in proportion to y labels
-#rf = RandomForestRegressor(n_jobs=-1, max_depth=5)
-
-# define Boruta feature selection method
-#feat_selector = BorutaPy(rf, n_estimators='auto', verbose=2, random_state=44, max_iter = 25, perc = 95)
-
-# find all relevant features
-#feat_selector.fit(np.array(X), y)
-
-# features selected by the Boruta algo
-#selected_features = X.columns[feat_selector.support_]
-#selected_features = ['Station', 'is_workday', 'Precipitation', 'Temp_max', 'Temp_min']
-
-# Joe's selected features
+# selected features from feature_selection.py
 selected_features = ['Dist_to_subway', 'Station', "Year", 'Month', 'is_workday', 'Precipitation', 'Temp_max', 'Temp_min', 'Wind_speed_max_5sec']
 X = station_trips[selected_features]
 
