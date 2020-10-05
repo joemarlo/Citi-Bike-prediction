@@ -46,13 +46,10 @@ X_test$Trip_count <- y_test$Trip_count
 
 # fit models --------------------------------------------------------------
 
-#
-lm(Trip_count ~ ., data = samp_train)
-
 # sample stratified on station for computational performance
 samp_train <- X_train %>% 
   group_by(Station) %>% 
-  slice_sample(n = 20)
+  slice_sample(n = 10)
 
 # fit quasipoisson and predict
 qpoisson <- glm(Trip_count ~ ., data = samp_train, family = quasipoisson(link = 'log'))
