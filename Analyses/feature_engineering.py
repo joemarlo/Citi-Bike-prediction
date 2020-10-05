@@ -20,6 +20,7 @@ station_trips = station_trips.dropna()
 station_trips = station_trips.astype({'Station':'int32', 'Trip_count': 'int32', 'Date': 'datetime64'})
 
 # add week and month column
+station_trips['Year'] = pd.DatetimeIndex(station_trips['Date']).year
 station_trips['Month'] = pd.DatetimeIndex(station_trips['Date']).month
 station_trips['Week'] = pd.DatetimeIndex(station_trips['Date']).week
 station_trips['Day_of_week'] = pd.DatetimeIndex(station_trips['Date']).dayofweek #monday=0
